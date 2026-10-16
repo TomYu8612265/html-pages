@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 工安缺失年度趨勢 Dashboard</title>
+<style>
+:root{--bg:#eef2f7;--card:#fff;--ink:#172033;--muted:#667085;--line:#dfe5ed;--blue:#2463eb;--green:#17803d;--amber:#d97706;--red:#b42318}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101828;font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif}
+.stage{width:1920px;height:1080px;transform-origin:top left;background:var(--bg);padding:18px 24px;color:var(--ink)}
+.header{height:54px;display:flex;justify-content:space-between;align-items:center;gap:18px}
+.title h1{margin:0;font-size:34px;font-weight:900;letter-spacing:.2px;white-space:nowrap}
+.meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:0}
+.tag{padding:7px 13px;border-radius:999px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;font-weight:800;max-width:820px;text-align:right;white-space:nowrap}
+.audit{font-size:11px;color:#667085;white-space:nowrap}
+.kpis{height:108px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:17px;box-shadow:0 5px 18px rgba(16,24,40,.055)}
+.kpi{padding:14px 20px;display:flex;flex-direction:column;justify-content:center}
+.kpi .label{font-size:13px;color:var(--muted);font-weight:800}
+.kpi .value{font-size:38px;font-weight:900;line-height:1.05;margin-top:3px}
+.kpi .note{font-size:12.5px;color:var(--muted);margin-top:4px;white-space:nowrap}
+.good{color:var(--green)} .warn{color:var(--amber)} .bad{color:var(--red)}
+.department-summary{height:64px;margin-bottom:12px;display:grid;grid-template-columns:260px repeat(4,1fr);gap:12px}
+.department-heading{display:flex;flex-direction:column;justify-content:center;padding-left:4px}
+.department-heading h2{margin:0;font-size:19px;font-weight:900}
+.department-heading p{margin:4px 0 0;font-size:12px;color:var(--muted)}
+.department-card{display:flex;align-items:center;justify-content:space-between;padding:9px 18px;background:#f5f8ff;border:1px solid #cbd9f7;border-radius:13px}
+.department-label{font-size:17px;font-weight:900;color:#1d4ed8}
+.department-card small{display:block;margin-top:2px;font-size:11px;color:var(--muted)}
+.department-card strong{font-size:29px;line-height:1;color:#172033}
+.department-card strong span{font-size:13px;font-weight:600;color:var(--muted)}
+.main{height:794px;display:grid;grid-template-columns:1.40fr .92fr;gap:12px}
+.left{display:grid;grid-template-rows:474px 308px;gap:12px}
+.right{display:grid;grid-template-rows:330px 452px;gap:12px}
+.box{padding:16px 18px;overflow:hidden}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:9px}
+.hd h2{margin:0;font-size:21px;font-weight:900;white-space:nowrap}
+.hd span{font-size:12px;color:var(--muted);text-align:right}
+.heatbox table{width:100%;border-collapse:separate;border-spacing:0 4px;font-size:13px}
+.heatbox th{height:26px;color:#667085;font-weight:800;padding:0 3px;text-align:center}
+.heatbox td{height:30px;text-align:center;padding:1px 3px}
+.heatbox th:first-child,.heatbox td:first-child{text-align:left;width:58px}
+.heat{display:inline-flex;width:43px;height:27px;align-items:center;justify-content:center;border-radius:8px;font-weight:900}
+.na{background:#f2f4f7;color:#98a2b3} .h0{background:#edf9f1;color:#237a45} .h1{background:#d8f1e0;color:#176b38} .h2{background:#ffefc8;color:#975a00} .h3{background:#ffd79a;color:#914a00} .h4{background:#ffc4ad;color:#9f2f10}
+.krow td:first-child{color:#1d4ed8;font-weight:900} .krow .heat:not(.na){outline:2px solid #2463eb;outline-offset:1px}
+.partial-head{color:#b54708!important} .partial-cell{background:linear-gradient(180deg,transparent 82%,#fff0d5 82%)}
+.rank-list{display:grid;grid-template-columns:1fr 1fr;gap:7px 14px}
+.rank-item{height:33px;display:grid;grid-template-columns:34px 46px 1fr 30px;align-items:center;gap:7px;padding:4px 9px;border-radius:10px;background:#f9fafb}
+.rank-item.focus{background:#eef4ff;border:1px solid #bfd3ff} .rank-no{font-size:12px;color:#98a2b3;font-weight:900} .rank-name{font-size:13px;font-weight:900}
+.rank-bar{height:12px;background:#e9edf4;border-radius:999px;overflow:hidden} .rank-bar i{display:block;height:100%;background:#8e9db3;border-radius:999px} .rank-item.focus .rank-bar i{background:#2463eb} .rank-value{font-size:13px;font-weight:900;text-align:right}
+.trend-chart{height:168px;position:relative;margin:3px 0 0 38px;border-left:1px solid #cfd6e0;border-bottom:1px solid #cfd6e0}
+.yline{position:absolute;left:0;right:0;height:1px;background:#edf0f5} .yl1{bottom:25%} .yl2{bottom:50%} .yl3{bottom:75%} .yl4{bottom:100%}
+.ylabels span{position:absolute;left:-35px;font-size:11px;color:#98a2b3;transform:translateY(50%)}
+.bars{position:absolute;left:10px;right:10px;top:10px;bottom:0;display:grid;grid-template-columns:repeat(12,1fr);gap:8px;align-items:end}
+.tp{height:100%;position:relative;display:flex;align-items:flex-end;justify-content:center} .tp i{display:block;width:30px;background:#2463eb;border-radius:7px 7px 0 0;min-height:3px} .tp b{position:absolute;font-size:12px;color:#1d4ed8}
+.tp.partial i{background:repeating-linear-gradient(135deg,#f59e0b 0,#f59e0b 6px,#ffd08a 6px,#ffd08a 11px)} .tp.partial b{color:#b54708}
+.tp.future span{font-size:12px;color:#a2aab7;margin-bottom:3px} .tp.zero b{font-size:12px;color:#17803d;bottom:10px} .tp.zero:after{content:"";width:8px;height:8px;background:#17803d;border-radius:50%;position:absolute;bottom:-4px} .tp.zero.partial:after{background:#f59e0b}
+.xmonths{margin-left:38px;display:grid;grid-template-columns:repeat(12,1fr);padding:6px 10px 0;font-size:11px;color:#667085;text-align:center}
+.callout{font-size:12.5px;line-height:1.5;background:#f8fbff;border-left:4px solid #2463eb;border-radius:9px;padding:9px 11px;margin-top:9px}
+.cat-row{display:grid;grid-template-columns:140px 1fr 30px;gap:9px;align-items:center;margin:9px 0} .cat-name{font-size:13px;font-weight:800} .cat-track{height:13px;background:#eaf0ff;border-radius:999px;overflow:hidden} .cat-track i{display:block;height:100%;background:#5278d8;border-radius:999px} .cat-value{font-size:13px;font-weight:900}
+.status-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:11px} .status{padding:9px 10px;border:1px solid var(--line);border-radius:11px;background:#fbfcfe} .status span{display:block;color:var(--muted);font-size:11px} .status b{display:block;font-size:24px;margin-top:1px}
+@media print{html,body{background:white;overflow:visible} .stage{transform:none!important}}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+<div class="header">
+  <div class="title"><h1>2026 工安缺失年度趨勢 Dashboard</h1></div>
+  <div class="meta"><div class="tag">1–9月完整｜10月截至 10/07｜11–12月尚無資料</div><div class="audit">來源 1 檔｜合併 147 筆｜無效日期 0 筆｜去重 8 筆｜統計 11 組</div></div>
+</div>
+
+<div class="kpis">
+  <div class="card kpi"><div class="label">目前累計缺失</div><div class="value">128</div><div class="note">1–9月完整＋10月截至10/07；4月最高 27 件</div></div>
+  <div class="card kpi"><div class="label">K組累計缺失</div><div class="value">19</div><div class="note">占全部 14.8%；7月高峰 7 件</div></div>
+  <div class="card kpi"><div class="label">K組目前排名</div><div class="value">第10名</div><div class="note">10/11 組；缺失越少越前</div></div>
+  <div class="card kpi"><div class="label">K組未結案</div><div class="value good">0</div><div class="note">已確認 19/19；逾期 0；結案率 100%</div></div>
+</div>
+
+<section class="department-summary" aria-label="K000～K300 年度累計缺失">
+  <div class="department-heading"><h2>K000～K300 缺失統計</h2><p>2026 年累計｜四部門合計 19 件</p></div>
+  <div class="department-card" data-department="K000"><div><span class="department-label">K000</span><small>510K000</small></div><strong>9<span> 件</span></strong></div><div class="department-card" data-department="K100"><div><span class="department-label">K100</span><small>510K100</small></div><strong>3<span> 件</span></strong></div><div class="department-card" data-department="K200"><div><span class="department-label">K200</span><small>510K200</small></div><strong>1<span> 件</span></strong></div><div class="department-card" data-department="K300"><div><span class="department-label">K300</span><small>510K300</small></div><strong>6<span> 件</span></strong></div>
+</section>
+
+<div class="main">
+  <div class="left">
+    <div class="card box heatbox">
+      <div class="hd"><h2>月份 × 組別缺失熱度</h2><span>0＝已載入且無缺失；—＝尚無資料；*＝截至 10/07</span></div>
+      <table><thead><tr><th>組別</th><th>1月</th><th>2月</th><th>3月</th><th>4月</th><th>5月</th><th>6月</th><th>7月</th><th>8月</th><th>9月</th><th class="partial-head">10月*</th><th>11月</th><th>12月</th><th>累計</th></tr></thead><tbody><tr><td>E組</td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h1">1</span></td><td class=""><span class="heat h2">3</span></td><td class=""><span class="heat h2">3</span></td><td class=""><span class="heat h1">1</span></td><td class=""><span class="heat h3">5</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h1">1</span></td><td class=""><span class="heat h0">0</span></td><td class="partial-cell"><span class="heat h0">0</span></td><td class=""><span class="heat na">—</span></td><td class=""><span class="heat na">—</span></td><td><b>14</b></td></tr><tr><td>J組</td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h2">3</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h1">2</span></td><td class=""><span class="heat h1">1</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class="partial-cell"><span class="heat h0">0</span></td><td class=""><span class="heat na">—</span></td><td class=""><span class="heat na">—</span></td><td><b>6</b></td></tr><tr class="krow"><td>K組</td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h1">1</span></td><td class=""><span class="heat h2">3</span></td><td class=""><span class="heat h1">2</span></td><td class=""><span class="heat h2">3</span></td><td class=""><span class="heat h4">7</span></td><td class=""><span class="heat h2">3</span></td><td class=""><span class="heat h0">0</span></td><td class="partial-cell"><span class="heat h0">0</span></td><td class=""><span class="heat na">—</span></td><td class=""><span class="heat na">—</span></td><td><b>19</b></td></tr><tr><td>L組</td><td class=""><span class="heat h1">1</span></td><td class=""><span class="heat h3">5</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h3">5</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h2">4</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h2">3</span></td><td class=""><span class="heat h2">3</span></td><td class="partial-cell"><span class="heat h2">4</span></td><td class=""><span class="heat na">—</span></td><td class=""><span class="heat na">—</span></td><td><b>25</b></td></tr><tr><td>M組</td><td class=""><span class="heat h1">2</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h2">3</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h2">4</span></td><td class=""><span class="heat h2">4</span></td><td class=""><span class="heat h1">2</span></td><td class=""><span class="heat h0">0</span></td><td class="partial-cell"><span class="heat h1">1</span></td><td class=""><span class="heat na">—</span></td><td class=""><span class="heat na">—</span></td><td><b>16</b></td></tr><tr><td>N組</td><td class=""><span class="heat h1">1</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h2">4</span></td><td class=""><span class="heat h2">4</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h2">4</span></td><td class="partial-cell"><span class="heat h1">1</span></td><td class=""><span class="heat na">—</span></td><td class=""><span class="heat na">—</span></td><td><b>14</b></td></tr><tr><td>P組</td><td class=""><span class="heat h1">1</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h1">2</span></td><td class=""><span class="heat h1">2</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h1">2</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h1">2</span></td><td class=""><span class="heat h0">0</span></td><td class="partial-cell"><span class="heat h0">0</span></td><td class=""><span class="heat na">—</span></td><td class=""><span class="heat na">—</span></td><td><b>9</b></td></tr><tr><td>R組</td><td class=""><span class="heat h1">2</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h2">3</span></td><td class=""><span class="heat h3">6</span></td><td class=""><span class="heat h1">1</span></td><td class=""><span class="heat h2">3</span></td><td class=""><span class="heat h1">1</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h1">2</span></td><td class="partial-cell"><span class="heat h0">0</span></td><td class=""><span class="heat na">—</span></td><td class=""><span class="heat na">—</span></td><td><b>18</b></td></tr><tr><td>S組</td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h1">1</span></td><td class=""><span class="heat h1">2</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class="partial-cell"><span class="heat h0">0</span></td><td class=""><span class="heat na">—</span></td><td class=""><span class="heat na">—</span></td><td><b>3</b></td></tr><tr><td>T組</td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class="partial-cell"><span class="heat h0">0</span></td><td class=""><span class="heat na">—</span></td><td class=""><span class="heat na">—</span></td><td><b>0</b></td></tr><tr><td>W組</td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h1">2</span></td><td class=""><span class="heat h1">1</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class=""><span class="heat h0">0</span></td><td class="partial-cell"><span class="heat h1">1</span></td><td class=""><span class="heat na">—</span></td><td class=""><span class="heat na">—</span></td><td><b>4</b></td></tr></tbody></table>
+    </div>
+
+    <div class="card box">
+      <div class="hd"><h2>各組目前累計排名</h2><span>共 11 組｜第 1 名＝缺失最少｜「＝」代表同件數並列</span></div>
+      <div class="rank-list"><div class="rank-item"><div class="rank-no">1</div><div class="rank-name">T組</div><div class="rank-bar"><i style="width:0.0%"></i></div><div class="rank-value">0</div></div><div class="rank-item"><div class="rank-no">2</div><div class="rank-name">S組</div><div class="rank-bar"><i style="width:12.0%"></i></div><div class="rank-value">3</div></div><div class="rank-item"><div class="rank-no">3</div><div class="rank-name">W組</div><div class="rank-bar"><i style="width:16.0%"></i></div><div class="rank-value">4</div></div><div class="rank-item"><div class="rank-no">4</div><div class="rank-name">J組</div><div class="rank-bar"><i style="width:24.0%"></i></div><div class="rank-value">6</div></div><div class="rank-item"><div class="rank-no">5</div><div class="rank-name">P組</div><div class="rank-bar"><i style="width:36.0%"></i></div><div class="rank-value">9</div></div><div class="rank-item"><div class="rank-no">6＝</div><div class="rank-name">E組</div><div class="rank-bar"><i style="width:56.0%"></i></div><div class="rank-value">14</div></div><div class="rank-item"><div class="rank-no">6＝</div><div class="rank-name">N組</div><div class="rank-bar"><i style="width:56.0%"></i></div><div class="rank-value">14</div></div><div class="rank-item"><div class="rank-no">8</div><div class="rank-name">M組</div><div class="rank-bar"><i style="width:64.0%"></i></div><div class="rank-value">16</div></div><div class="rank-item"><div class="rank-no">9</div><div class="rank-name">R組</div><div class="rank-bar"><i style="width:72.0%"></i></div><div class="rank-value">18</div></div><div class="rank-item focus"><div class="rank-no">10</div><div class="rank-name">K組</div><div class="rank-bar"><i style="width:76.0%"></i></div><div class="rank-value">19</div></div><div class="rank-item"><div class="rank-no">11</div><div class="rank-name">L組</div><div class="rank-bar"><i style="width:100.0%"></i></div><div class="rank-value">25</div></div></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="card box">
+      <div class="hd"><h2>K組年度月趨勢</h2><span>年度高峰：7月 7 件</span></div>
+      <div class="trend-chart">
+        <div class="yline yl1"></div><div class="yline yl2"></div><div class="yline yl3"></div><div class="yline yl4"></div>
+        <div class="ylabels"><span style="bottom:0%">0</span><span style="bottom:25%">2</span><span style="bottom:50%">4</span><span style="bottom:75%">6</span><span style="bottom:100%">8</span></div>
+        <div class="bars"><div class="tp zero"><b>0</b></div><div class="tp zero"><b>0</b></div><div class="tp"><b style="bottom:calc(12.5% + 5px)">1</b><i style="height:12.5%"></i></div><div class="tp"><b style="bottom:calc(37.5% + 5px)">3</b><i style="height:37.5%"></i></div><div class="tp"><b style="bottom:calc(25.0% + 5px)">2</b><i style="height:25.0%"></i></div><div class="tp"><b style="bottom:calc(37.5% + 5px)">3</b><i style="height:37.5%"></i></div><div class="tp"><b style="bottom:calc(87.5% + 5px)">7</b><i style="height:87.5%"></i></div><div class="tp"><b style="bottom:calc(37.5% + 5px)">3</b><i style="height:37.5%"></i></div><div class="tp zero"><b>0</b></div><div class="tp zero partial"><b>0</b></div><div class="tp future"><span>—</span></div><div class="tp future"><span>—</span></div></div>
+      </div>
+      <div class="xmonths"><span>1月</span><span>2月</span><span>3月</span><span>4月</span><span>5月</span><span>6月</span><span>7月</span><span>8月</span><span>9月</span><span>10月</span><span>11月</span><span>12月</span></div>
+      <div class="callout"><b>目前判讀：</b>K組年度高峰為 7月 7 件；10月截至 10/07 為 0 件。 橘色斜紋代表本月資料尚未完整，不與完整月份直接比較。</div>
+    </div>
+
+    <div class="card box">
+      <div class="hd"><h2>K組缺失結構與改善狀態</h2><span>共 6 類｜合計 19 件</span></div>
+      <div class="cat-row"><div class="cat-name">其他</div><div class="cat-track"><i style="width:100.0%"></i></div><div class="cat-value">6</div></div><div class="cat-row"><div class="cat-name">化學品</div><div class="cat-track"><i style="width:100.0%"></i></div><div class="cat-value">6</div></div><div class="cat-row"><div class="cat-name">設備安全管理</div><div class="cat-track"><i style="width:66.7%"></i></div><div class="cat-value">4</div></div><div class="cat-row"><div class="cat-name">安全衛生防護</div><div class="cat-track"><i style="width:16.7%"></i></div><div class="cat-value">1</div></div><div class="cat-row"><div class="cat-name">整理整頓</div><div class="cat-track"><i style="width:16.7%"></i></div><div class="cat-value">1</div></div><div class="cat-row"><div class="cat-name">電氣安全</div><div class="cat-track"><i style="width:16.7%"></i></div><div class="cat-value">1</div></div>
+      <div class="status-grid">
+        <div class="status"><span>已確認改善</span><b class="good">19</b></div>
+        <div class="status"><span>未結案</span><b class="good">0</b></div>
+        <div class="status"><span>逾期</span><b class="good">0</b></div>
+        <div class="status"><span>結案率</span><b class="good">100%</b></div>
+      </div>
+      <div class="callout"><b>管理重點：</b>K組目前已確認改善 19/19 件、逾期 0 件；高頻類型：其他 6件、化學品 6件、設備安全管理 4件。後續建議持續追蹤同類缺失是否再發。</div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+(function(){const stage=document.getElementById("stage");function fit(){const scale=Math.min(window.innerWidth/1920,window.innerHeight/1080);stage.style.transform=`scale(${scale})`;}window.addEventListener("resize",fit);fit();})();
+</script>
+</body>
+</html>
