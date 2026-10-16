@@ -1,0 +1,20 @@
+# Allow only deployment inputs; all directories and other files are ignored.
+*
+!/*.[hH][tT][mM][lL]
+!/.gitignore
+!/.nojekyll
+!/.pages-managed
+Account password.txt
+.[eE][nN][vV]*
+*.[pP][eE][mM]
+*.[kK][eE][yY]
+*.[pP][fF][xX]
+*.[pP]12
+*.[cC][eE][rR]
+*.[cC][rR][tT]
+*.[pP][aA][sS][sS][wW][oO][rR][dD]*
+*[pP][aA][sS][sS][wW][oO][rR][dD]*
+*[tT][oO][kK][eE][nN]*
+*[sS][eE][cC][rR][eE][tT]*
+*[cC][rR][eE][dD][eE][nN][tT][iI][aA][lL]*
+*帳號密碼*
